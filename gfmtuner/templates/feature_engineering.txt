@@ -1,0 +1,13 @@
+Plan feature engineering.
+
+Inputs:
+- User query: {QUERY}
+
+Decide: preprocessing steps.
+
+Output ONLY JSON.
+```json
+{{
+  "preprocessing": "standardize node features"
+}}
+```

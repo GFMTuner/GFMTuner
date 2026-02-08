@@ -1,0 +1,15 @@
+The user's query needs to be solved by fine-tuning a pre-trained graph foundation model. Now your task is to design the architecture of the task head based on the user's query for a pretrained graph foundation model.
+Inputs:
+- User query: {QUERY}
+
+Decide: depth, hidden_dims, activation, normalization.
+
+Output ONLY JSON like:
+```json
+{{
+  "depth": 2,
+  "hidden_dims": 256,
+  "activation": "relu",
+  "normalization": "batchnorm",
+}}
+```

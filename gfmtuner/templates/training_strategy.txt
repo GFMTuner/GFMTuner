@@ -1,0 +1,105 @@
+You are an expert in Graph Neural Network training. Design an optimal training strategy based on the graph characteristics and task requirements.
+
+Inputs:
+- User query: {QUERY}
+- Data analysis: {DATA_ANALYSIS}
+- Feature strategy: {FEATURE_STRATEGY}
+
+Based on the graph characteristics (scale, density, class distribution) and task type, make decisions on the following dimensions:
+
+**1. Core Optimization:**
+- optimizer: adam | adamw | sgd | rmsprop (adamw recommended for most GNN tasks)
+- lr: learning rate (smaller for large graphs, e.g., 0.001; larger for small graphs, e.g., 0.01)
+- weight_decay: L2 regularization strength (0.0001-0.01)
+- lr_schedule: none | step | cosine | warmup_cosine | reduce_on_plateau | linear_warmup
+- warmup_epochs: number of warmup epochs (if using warmup schedule)
+- min_lr: minimum learning rate for schedulers
+
+**2. Loss Function:**
+- loss: cross_entropy | focal_loss | label_smoothing_ce | bce_with_logits | mse | margin_loss
+- label_smoothing: smoothing factor if using label_smoothing_ce (0.0-0.2)
+- focal_gamma: gamma parameter if using focal_loss (1.0-3.0)
+
+**3. Batching & Sampling (critical for scalability):**
+- batch_mode: full | mini (use full for graphs <10k nodes, mini for larger)
+- batch_size: number of target nodes per batch (256-2048 typical)
+- neighbor_sampling: sampling strategy for mini-batch training
+  - num_neighbors: list of neighbors per layer, e.g., [15, 10, 5]
+  - strategy: uniform | importance | layer_dependent
+
+**4. Regularization (GNN-specific):**
+- dropout: node feature dropout rate (0.0-0.8)
+- dropedge: edge dropout rate during training (0.0-0.5, GNN-specific)
+- dropnode: node dropout rate (0.0-0.3)
+- feature_noise: add Gaussian noise to features (null or std value)
+
+**5. Gradient Control:**
+- gradient_clipping: max gradient norm (1.0-5.0, or null)
+- accumulation_steps: gradient accumulation steps for large batches (1-8)
+
+**6. Class Imbalance Handling:**
+- class_imbalance_handling: none | weighted_loss | oversampling | undersampling | focal_loss | smote
+- class_weights: auto | manual (list of weights per class)
+- sampling_strategy: how to balance during sampling
+
+**7. Early Stopping:**
+- early_stopping_metric: val_loss | val_acc | val_f1 | val_auc
+- early_stopping_patience: number of epochs to wait (10-50)
+- early_stopping_min_delta: minimum improvement threshold (0.0001-0.01)
+
+**8. Training Epochs:**
+- max_epochs: maximum training epochs (100-1000)
+- eval_frequency: evaluate every N epochs (1-10)
+
+**9. Task-Specific Settings:**
+- For link prediction:
+  - negative_sampling_ratio: ratio of negative to positive edges (1-10)
+  - negative_sampling_strategy: random | degree_biased | personalized
+- For graph classification:
+  - graph_pooling_in_training: whether to use pooling during training
+
+**10. Advanced (optional):**
+- use_amp: mixed precision training (true/false)
+- ema_decay: exponential moving average for model weights (null or 0.99-0.9999)
+- swa: stochastic weight averaging settings
+
+For each major decision, provide brief reasoning based on:
+- Graph scale (small <10k / medium 10k-100k / large >100k nodes)
+- Graph density (sparse / dense)
+- Task type (node / edge / graph level)
+- Class distribution (balanced / imbalanced)
+- Memory and compute constraints
+
+Output ONLY JSON.
+```json
+{{
+  "optimizer": "adamw",
+  "lr": 0.001,
+  "weight_decay": 0.01,
+  "lr_schedule": "warmup_cosine",
+  "warmup_epochs": 10,
+  "min_lr": 1e-6,
+  "loss": "cross_entropy",
+  "label_smoothing": 0.1,
+  "batch_mode": "mini",
+  "batch_size": 1024,
+  "neighbor_sampling": {{
+    "num_neighbors": [15, 10],
+    "strategy": "uniform"
+  }},
+  "dropout": 0.5,
+  "dropedge": 0.1,
+  "dropnode": 0.0,
+  "gradient_clipping": 1.0,
+  "accumulation_steps": 1,
+  "class_imbalance_handling": "weighted_loss",
+  "class_weights": "auto",
+  "early_stopping_metric": "val_f1",
+  "early_stopping_patience": 20,
+  "early_stopping_min_delta": 0.001,
+  "max_epochs": 200,
+  "eval_frequency": 1,
+  "use_amp": false,
+  "reasoning": "Medium-scale graph (50k nodes) requires mini-batch training with neighbor sampling. Detected class imbalance (1:8 ratio), using weighted cross-entropy loss. Warmup cosine schedule for stable convergence. DropEdge helps prevent over-smoothing in deep GNNs."
+}}
+```

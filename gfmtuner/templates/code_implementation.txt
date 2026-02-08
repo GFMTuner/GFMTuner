@@ -1,0 +1,63 @@
+You are an expert in Graph Machine Learning, proficient in PyTorch Geometric (PyG) and Graph Foundation Models.
+
+The user provides a labeled graph data file: graph.pt (this is a PyTorch file that can be read using torch.load. its content is a torch_geometric.data.Data object, with node features x, edge indices edge_index, node labels y, etc.).
+
+Inputs:
+- User query: {QUERY}
+- Architecture design: {ARCHITECTURE_DESIGN}
+- Training strategy: {TRAINING_STRATEGY}
+- Feature strategy: {FEATURE_STRATEGY}
+- Experiment design: {EXPERIMENT_DESIGN}
+
+Graph Data Analysis Results (from actual execution):
+```
+{DATA_INSIGHTS}
+```
+Use the above statistics to set correct values for num_classes, input dimensions, etc.
+
+Requirements:
+- We now have a pre-trained Graph Foundation Model (GFM). It's an encoder that generates node embeddings from the input graph.
+
+The model is loaded strictly as follows: `from torch.package import PackageImporter` `import torch` `import torch_geometric` `importer = PackageImporter("graphmae_pretrained.pt")` `bundle = importer.load_pickle("model", "model.pkl")` `model = bundle["model"]` `model.train()`
+
+The graph data is loaded strictly as follows: `graph_data = torch.load("graph_data.pt", map_location="cpu")`
+
+The model is used strictly as follows:: `hidden_embeddings = model.embed(graph_data.x, graph_data.edge_index)`
+
+This model is an encoder (torch.nn.Module), taking a PyG Data object (or batched Data) as input and outputting node-level embeddings (shape: [num_nodes, hidden_dim=512]).
+
+TASK: We do NOT need to fully fine-tune the GFM. We only need to:
+1. Add a simple downstream classification head on top of the GFM encoder.
+2. Perform ONE forward pass and ONE backward pass (compute the loss and call loss.backward()).
+3. Extract the gradients of ALL parameters in the GFM encoder after this single backward pass.
+4. Save the gradients to a JSON file named "gradients.json".
+
+The JSON file should have the following structure:
+```json
+{{
+    "layer_name_1": [[grad_values...]],
+    "layer_name_2": [[grad_values...]],
+    ...
+}}
+```
+
+For each parameter, use `param.grad.tolist()` to convert the gradient tensor to a nested list for JSON serialization. Use the parameter's name (from `model.named_parameters()`) as the key.
+
+- The path to the graph data file is "graph_data.pt".
+- Use PyTorch Geometric (PyG).
+- Keep code self-contained; use CPU-friendly defaults.
+- Only perform ONE gradient computation step, do NOT run a full training loop.
+
+IMPORTANT - Common Mistakes to Avoid:
+1. When building nn.Sequential or nn.ModuleList, use nn.ReLU() (Module) instead of F.relu (function). Same for other activations: use nn.LeakyReLU(), nn.GELU(), nn.Sigmoid(), etc.
+2. Always use `nn.Module` subclasses when adding layers to nn.ModuleList or nn.Sequential.
+3. Ensure all tensor operations have matching dimensions.
+4. Use .to(device) consistently for model and data.
+5. Call model.train() before training and model.eval() before evaluation.
+6. Use torch.no_grad() during evaluation to save memory.
+7. When inheriting from torch_geometric.transforms.BaseTransform, implement `forward(self, data)` method, NOT `__call__`. The `__call__` is already defined in the parent class and will call `forward`.
+8. Do NOT inherit from BaseTransform if you only need a simple transform function - just use a regular class or function instead.
+9. CRITICAL: The GFM encoder has a FIXED input dimension matching the original graph_data.x. Do NOT modify, concatenate, or augment the features passed to model.embed(). Pass graph_data.x directly without any changes. If you want to add extra features (like node degree), concatenate them AFTER the GFM embedding output, not before.
+10. CRITICAL: Do NOT create dummy/mock data or dummy/mock models under any circumstances. Do NOT check if files exist and create them if missing. Do NOT use torch.package.PackageExporter. The files "graph_data.pt" and "graphmae_pretrained.pt" are GUARANTEED to exist and are valid. Just load them directly.
+11. PyTorch activation class names are case-sensitive: use nn.ReLU (not nn.Relu), nn.LeakyReLU (not nn.Leakyrelu), nn.GELU (not nn.Gelu). Do NOT use string.capitalize() for activation names. Use explicit if-else or a dict mapping like: {{"relu": nn.ReLU(), "leakyrelu": nn.LeakyReLU(), "gelu": nn.GELU()}}.
+

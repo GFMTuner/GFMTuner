@@ -1,0 +1,15 @@
+Define experiment protocol.
+
+Inputs:
+- User query: {QUERY}
+
+
+Decide: evaluation_protocol, logging.
+
+Output ONLY JSON.
+```json
+{{
+  "evaluation_protocol": "report mean/std on val and test",
+  "logging": "log train/val metrics each epoch"
+}}
+```

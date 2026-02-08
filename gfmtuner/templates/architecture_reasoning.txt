@@ -1,0 +1,16 @@
+You pick a GNN backbone.
+
+Inputs:
+- User query: {QUERY}
+
+
+Consider:
+- Backbones: GCN | GraphSAGE | GAT | GIN | HGT/HAN | GraphTransformer/GraphGPS | MPNN-variant
+
+
+Output ONLY JSON like.
+```json
+{{
+  "backbone": "GraphSAGE",
+}}
+```

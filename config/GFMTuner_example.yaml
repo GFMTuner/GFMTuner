@@ -1,0 +1,23 @@
+tasks_file_path: "data/GFMTuner/tasks.pkl"
+subset_file_path: null
+resource_root_dir: null
+n_processes: 3
+max_rollout_steps: 1
+exploration_constant: 1.414
+save_root_dir: "results/GFMTuner/demo"
+mcts_model_kwargs:
+  model: "your_model_name_here"
+  n: 3
+  top_p: 0.9
+  max_tokens: 8192
+  temperature: 0.5
+  n_strategy: "single"
+reward_model_kwargs: null
+code_execution:
+  conda_env: "GFMTuner"
+  graph_data_path: "your_graph_data_path_here"
+  pretrained_model_path: "your_pretrained_model_path_here"
+  execution_timeout: 120
+  enable_execution: true
+  gradient_sample_count: 3
+random_seed: 42
